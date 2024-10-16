@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Collections;
 
 public class NPCInteraction : MonoBehaviour
 {
@@ -10,13 +11,17 @@ public class NPCInteraction : MonoBehaviour
         "This is line 2.",
         "This is line 3."
     };
-
+    
+    public static bool isInteracting = false;
+    private bool isTyping = false;  // Track if a line is currently being typed
+    private string currentLine = "";  // Track the current line being typed
     private int dialogueIndex = 0;
-    private bool isInteracting = false;
 
     void Start()
     {
-        dialogueBox.SetActive(false); // Hide the dialogue box initially
+        // Initially hide dialogue objects from player view
+        dialogueText.enabled = false;
+        dialogueBox.SetActive(false);
     }
 
     void Update()
@@ -35,7 +40,18 @@ public class NPCInteraction : MonoBehaviour
             }
             else if (isInteracting)
             {
-                DisplayNextLine();
+                if (isTyping)
+                {
+                    // If typing is in progress, instantly show the full line
+                    StopAllCoroutines();
+                    dialogueText.text = currentLine;
+                    isTyping = false;  // Line is now fully displayed
+                }
+                else
+                {
+                    // Move to the next line
+                    DisplayNextLine();
+                }
             }
         }
     }
@@ -58,6 +74,7 @@ public class NPCInteraction : MonoBehaviour
     {
         isInteracting = true;
         dialogueIndex = 0;
+        dialogueText.enabled = true;
         dialogueBox.SetActive(true);
         DisplayNextLine();
     }
@@ -66,8 +83,9 @@ public class NPCInteraction : MonoBehaviour
     {
         if (dialogueIndex < dialogueLines.Length)
         {
-            dialogueText.text = dialogueLines[dialogueIndex];
-            Debug.Log($"Displaying line {dialogueIndex + 1}: {dialogueLines[dialogueIndex]}"); // Print to console
+            currentLine = dialogueLines[dialogueIndex];  // Store the current line
+            StopAllCoroutines();  // Ensure no previous coroutine is running
+            StartCoroutine(TypeText(currentLine));
             dialogueIndex++;
         }
         else
@@ -76,8 +94,21 @@ public class NPCInteraction : MonoBehaviour
         }
     }
 
+    IEnumerator TypeText(string fullLine)
+    {
+        isTyping = true;  // Set flag to true, indicating typing is in progress
+        dialogueText.text = "";  // Clear current text
+        foreach (char letter in fullLine.ToCharArray())
+        {
+            dialogueText.text += letter;
+            yield return new WaitForSeconds(0.05f);  // Adjust this delay for typing speed
+        }
+        isTyping = false;  // Set flag to false, typing has finished
+    }
+
     void EndDialogue()
     {
+        dialogueText.enabled = false;
         dialogueBox.SetActive(false);
         isInteracting = false;
     }
