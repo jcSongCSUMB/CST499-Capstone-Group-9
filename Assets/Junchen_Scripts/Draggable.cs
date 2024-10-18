@@ -4,24 +4,26 @@ using UnityEngine.Tilemaps;
 
 public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    public Tilemap tilemap;
-    public GameObject unitPrefab;
+    public Tilemap tilemap;  // Tilemap reference
+    public GameObject unitPrefab;  // Prefab for unit to be spawned
     public RectTransform troopInventoryBar;  // Reference to the inventory panel RectTransform
-    private Transform originalParent;
+    private Transform originalParent;  // Store the original parent
 
     void Start()
     {
-        originalParent = transform.parent;
+        originalParent = transform.parent;  // Save original parent
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        // Temporarily re-parent to avoid Grid Layout influence
         transform.SetParent(transform.root);
-        transform.SetAsLastSibling();
+        transform.SetAsLastSibling();  // Bring to front during drag
     }
 
     public void OnDrag(PointerEventData eventData)
     {
+        // Follow mouse position during drag
         transform.position = Input.mousePosition;
     }
 
@@ -29,48 +31,70 @@ public class Draggable : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     {
         if (IsPointerOverInventory())
         {
-            // Return to original position if over inventory
+            // If dropped over inventory, return to original position
             transform.SetParent(originalParent);
         }
         else if (IsPointerOverTilemapArea())
         {
-            // Spawn unit if released over Tilemap area
+            // If dropped over Tilemap, spawn a unit
             SpawnUnitOnTilemap();
-            gameObject.SetActive(false);
+            gameObject.SetActive(false);  // Hide the dragged object
         }
         else
         {
-            // Return to original position if not over inventory or tilemap
+            // Otherwise, return to original position
             transform.SetParent(originalParent);
         }
     }
 
     private bool IsPointerOverInventory()
     {
-        // Use RectTransformUtility to check if mouse is over the inventory area
+        // Check if the pointer is over the inventory panel using RectTransformUtility
         return RectTransformUtility.RectangleContainsScreenPoint(
             troopInventoryBar, Input.mousePosition, Camera.main);
     }
 
     private bool IsPointerOverTilemapArea()
     {
-        // Convert mouse position to world position
+        // Convert the mouse position to world position
         Vector3 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        worldPoint.z = 0;
+        worldPoint.z = 0;  // Ensure the Z position is correct for 2D
 
-        // Check if the worldPoint is within the bounds of the tilemap collider
-        Bounds tilemapBounds = tilemap.GetComponent<TilemapCollider2D>().bounds;
-        return tilemapBounds.Contains(worldPoint);
+        // Get the TilemapCollider2D bounds
+        TilemapCollider2D tilemapCollider = tilemap.GetComponent<TilemapCollider2D>();
+        if (tilemapCollider == null)
+        {
+            Debug.LogError("TilemapCollider2D not found on the Tilemap!");
+            return false;
+        }
+
+        Bounds tilemapBounds = tilemapCollider.bounds;
+        Debug.Log("World Point: " + worldPoint + " | Tilemap Bounds: " + tilemapBounds);
+
+        // Check if the worldPoint is within the tilemap bounds
+        bool isInBounds = tilemapBounds.Contains(worldPoint);
+        Debug.Log("Is Pointer Over Tilemap Area: " + isInBounds);
+
+        return isInBounds;
     }
 
     private void SpawnUnitOnTilemap()
     {
+        // Convert mouse position to world position
         Vector3 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         worldPos.z = 0;
-        Vector3Int cellPosition = tilemap.WorldToCell(worldPos);
-        Vector3 spawnPosition = tilemap.GetCellCenterWorld(cellPosition);
 
+        // Convert world position to Tilemap cell position
+        Vector3Int cellPosition = tilemap.WorldToCell(worldPos);
+        Debug.Log("World Position: " + worldPos + " | Cell Position: " + cellPosition);
+
+        // Get the center of the tile for correct placement
+        Vector3 spawnPosition = tilemap.GetCellCenterWorld(cellPosition);
+        Debug.Log("Spawn Position: " + spawnPosition);
+
+        // Instantiate the unit prefab at the calculated spawn position
         Instantiate(unitPrefab, spawnPosition, Quaternion.identity);
+
+        Debug.Log("Spawned Unit at: " + spawnPosition);
     }
 }
-
