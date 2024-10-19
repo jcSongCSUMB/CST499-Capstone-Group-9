@@ -6,6 +6,7 @@ public class unitScript : MonoBehaviour {
     public int unitHealth = 50;
     public int unitAP = 2;
     public float unitSpeed = 3f;
+    public bool isActive = true;
 
     private battleManager bm;
     //GameObject target;
@@ -34,7 +35,7 @@ public class unitScript : MonoBehaviour {
         
     }
 
-    void actionUse() {
+    public void actionUse() {
         if (unitAP > 1) {
             Debug.Log("Action Used!");
             unitAP--;
