@@ -6,7 +6,7 @@ using UnityEngine;
 public class battleManager : MonoBehaviour {
     private int activeUnits = 4;
     private bool turnComplete = false;
-    public TextMeshPro unitCounter;
+    public TextMeshProUGUI  unitCounter;
     
     
     // Start is called before the first frame update
