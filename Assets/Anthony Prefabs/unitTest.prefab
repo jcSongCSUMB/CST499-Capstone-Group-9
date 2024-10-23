@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: -4081805732798151}
   - component: {fileID: -1787917736801711124}
   - component: {fileID: -7486130720657301856}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: unitTest
   m_TagString: Character
   m_Icon: {fileID: 0}
@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 3298952125583168210}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -1.3499999, y: 0.25, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -101,6 +101,7 @@ MonoBehaviour:
   unitHealth: 50
   unitAP: 2
   unitSpeed: 3
+  isActive: 1
 --- !u!61 &-7486130720657301856
 BoxCollider2D:
   m_ObjectHideFlags: 0

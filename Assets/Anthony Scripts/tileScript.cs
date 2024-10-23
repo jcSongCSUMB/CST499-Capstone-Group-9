@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class tileScript : MonoBehaviour {
     public GameObject unit;
-    public bool hasUnit;
+    public bool hasUnit {
+        get { return unit != null; }
+    }
     
     // Start is called before the first frame update
     void Start() {
@@ -14,5 +16,13 @@ public class tileScript : MonoBehaviour {
     // Update is called once per frame
     void Update() {
         
+    }
+
+    public void AssignUnit(GameObject newUnit) {
+        unit = newUnit;
+    }
+
+    public void ClearUnit() {
+        unit = null;
     }
 }

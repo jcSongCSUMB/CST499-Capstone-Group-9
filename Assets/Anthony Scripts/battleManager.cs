@@ -4,21 +4,33 @@ using TMPro;
 using UnityEngine;
 
 public class battleManager : MonoBehaviour {
-    private int activeUnits = 4;
+    public int activeUnits = 4;
     private bool turnComplete = false;
     public TextMeshProUGUI  unitCounter;
+    public tileMap tmap;
     
     
     // Start is called before the first frame update
     void Start() {
-        unitCounter.text = $"Units: {activeUnits}";
+        unitCounter.text = $"Units: {activeUnits} - {tmap.getUnitAP()}";
     }
 
     // Update is called once per frame
     void Update() {
+        SetText();
         if (turnComplete == true) {
             // switch to enemy
             // otherwise, can still use up time on their turn even with inactive units
+        }
+    }
+
+    void SetText() {
+        int unitAP = tmap.getUnitAP();
+        if (tmap.getUnitAP() > 0) {
+            unitCounter.text = $"Units: {activeUnits} - Selected AP: {tmap.getUnitAP()}";
+        }
+        else {
+            unitCounter.text = $"Units: {activeUnits} - Selected AP: NONE";
         }
     }
 

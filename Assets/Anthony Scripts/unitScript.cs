@@ -14,7 +14,8 @@ public class unitScript : MonoBehaviour {
     
     // Start is called before the first frame update
     void Start() {
-        
+        bm = FindObjectOfType<battleManager>();
+        Debug.Log($"Unit has {unitAP} AP.");
     }
 
     // Update is called once per frame
@@ -36,13 +37,16 @@ public class unitScript : MonoBehaviour {
     }
 
     public void actionUse() {
-        if (unitAP > 1) {
+        if (unitAP > 0) {
             Debug.Log("Action Used!");
             unitAP--;
         }
 
-        else {
-            bm.decreaseUnits();
+        if (unitAP <= 0) {
+            if (bm != null) {
+                bm.decreaseUnits();
+                Debug.Log("No more AP available.");
+            }
         }
     }
 }

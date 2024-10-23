@@ -10,7 +10,7 @@ public class tileMap : MonoBehaviour {
     public Tilemap tilemap;
     public tileScript tile;
     private SpriteRenderer spr;
-    public GameObject currentUnit;
+    private GameObject selectedUnit = null;
     // Start is called before the first frame update
     void Start() {
         
@@ -18,24 +18,6 @@ public class tileMap : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        // This line will show the mouse position in world coordinates for debugging
-        //Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        //Debug.Log($"Mouse Position: {mousePos}");
-        
-        /*
-        if (Input.GetMouseButtonDown(0)) { // Check for left mouse button click
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector3Int cellPosition = tilemap.WorldToCell(mousePos);
-            TileBase clickedTile = tilemap.GetTile(cellPosition);
-
-            if (clickedTile != null) {
-                //Debug.Log($"Tile clicked at {cellPosition}: {clickedTile}");
-            } else {
-                // Check if a sprite renderer GameObject was clicked
-                CheckSpriteClick(mousePos);
-            }
-        }*/
-
         if (Input.GetMouseButtonDown(0)) {
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             CheckSpriteClick(mousePos);
@@ -47,70 +29,104 @@ public class tileMap : MonoBehaviour {
             spr.color = newColor;
         }
     }
-    
-    /*
-    void OnMouseDown() {
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector3Int cellPosition = tilemap.WorldToCell(mousePos);
-        TileBase clickedTile = tilemap.GetTile(cellPosition);
 
-        if (clickedTile != null) {
-            Debug.Log($"Tile clicked at {cellPosition}: {clickedTile}");
-        } else {
-            Debug.Log($"No tile found at {cellPosition}");
+    public int getUnitAP() {
+        if (selectedUnit == null) {
+            Debug.LogWarning("No unit selected.");
+            return 0;
+        }
+        
+        unitScript us = selectedUnit.GetComponent<unitScript>();
+        if (us != null) {
+            return us.unitAP;    
+        }
+        else {
+            Debug.LogError("Unit script not found.");
+            return 0;
         }
     }
-    */
 
     public RaycastHit2D? GetFocusedOnTile() {
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 mousePos2d = new Vector2(mousePos.x, mousePos.y);
 
-        RaycastHit2D[] hits = Physics2D.RaycastAll(mousePos2d, Vector2.zero);
-
-        if (hits.Length > 0) {
-            return hits.OrderByDescending(i => i.collider.transform.position.z).First();
+        RaycastHit2D hit = Physics2D.Raycast(mousePos2d, Vector2.zero);
+        
+        
+        if (hit != null) {
+            return hit;
         }
 
         return null;
     }
-
-    void PositionUnit(tileScript _tile) {
-        if (_tile.hasUnit) {
-            unitScript us = currentUnit.GetComponent<unitScript>();
-
-            if (us.isActive) {
-                us.actionUse();
-                currentUnit.transform.position = _tile.transform.position + new Vector3(0, 0.5f, 0);
-                Debug.Log($"current unitAP: {us.unitAP}");
-            }
-            
-        }
-    }
     
     void CheckSpriteClick(Vector3 mousePos) {
-        // Cast a ray from the mouse position
-        //Vector2 mousePos2d = new Vector2(mousePos.x, mousePos.y);
-        //RaycastHit2D[] hits = Physics2D.RaycastAll(mousePos2d, Vector2.zero); // Use Vector2.zero for 2D
         RaycastHit2D? hitResult = GetFocusedOnTile();
 
+        // check for tile hit
         if (hitResult.HasValue) {
             RaycastHit2D hit = hitResult.Value;
-            if (tile != null) {
+            tile = hit.collider.GetComponent<tileScript>();
+            tileScript clickedTile = hit.collider.GetComponent<tileScript>();
+
+            // if clicked tile
+            if (clickedTile != null) {
+                // first click for selection
+                if (selectedUnit == null) {
+                    if (clickedTile.hasUnit) {
+                        selectedUnit = clickedTile.unit;
+                        Debug.Log("Unit selected");
+                    }
+                }
+                // second click to move to another tile
+                else {
+                    if (!clickedTile.hasUnit) {
+                        MoveUnitToTile(selectedUnit, tile, clickedTile);
+                        selectedUnit = null;
+                    }
+                    else {
+                        Debug.Log("Cannot move to a tile that already has a unit.");
+                    }
+
+                    selectedUnit = null;
+                    tile = null;
+                }
+            }
+            
+            if (spr != null) {
+                //spr.sortingLayerName = "Units";
                 Color orig = spr.color;
                 orig.a = 1;
                 spr.color = orig;
             }
-            
-            // If something was hit, log the name of the GameObject
-            tile = hit.collider.GetComponent<tileScript>();
             spr = hit.collider.GetComponent<SpriteRenderer>();
-            PositionUnit(tile);
+            
             Debug.Log($"Sprite clicked: {tile.name} at {hit.transform.position}");
         }
 
         else {
             Debug.Log("Nothing here?");
+            selectedUnit = null;
         }
+    }
+
+    void MoveUnitToTile(GameObject unit, tileScript prevTile, tileScript targetTile) {
+        unitScript us = unit.GetComponent<unitScript>();
+
+        if (us.unitAP > 0) {
+            unit.transform.position = new Vector3(targetTile.transform.position.x, targetTile.transform.position.y + 0.5f, -1);
+            prevTile.ClearUnit();
+            targetTile.AssignUnit(unit);
+            
+            us.actionUse();
+        }
+
+        else {
+            Debug.Log("Unit has no AP.");
+        }
+        
+        
+        
+        Debug.Log("Unit moved to new tile.");
     }
 }
