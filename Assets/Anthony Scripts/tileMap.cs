@@ -11,6 +11,8 @@ public class tileMap : MonoBehaviour {
     public tileScript tile;
     private SpriteRenderer spr;
     private GameObject selectedUnit = null;
+    public bool isMovingUnit = false;
+    public actionManager acMan;
     // Start is called before the first frame update
     void Start() {
         
@@ -72,22 +74,25 @@ public class tileMap : MonoBehaviour {
             // if clicked tile
             if (clickedTile != null) {
                 // first click for selection
-                if (selectedUnit == null) {
+                if (selectedUnit == null && clickedTile.hasUnit) {
                     if (clickedTile.hasUnit) {
                         selectedUnit = clickedTile.unit;
                         Debug.Log("Unit selected");
+                        actionManager actionManager = FindObjectOfType<actionManager>();
+                        actionManager?.OpenActionPanel(selectedUnit.GetComponent<unitScript>());
                     }
                 }
                 // second click to move to another tile
-                else {
+                else if (selectedUnit != null && isMovingUnit) {
+                    // logic for unit already on tile
                     if (!clickedTile.hasUnit) {
                         MoveUnitToTile(selectedUnit, tile, clickedTile);
+                        isMovingUnit = false;
                         selectedUnit = null;
                     }
                     else {
                         Debug.Log("Cannot move to a tile that already has a unit.");
                     }
-
                     selectedUnit = null;
                     tile = null;
                 }
@@ -101,7 +106,7 @@ public class tileMap : MonoBehaviour {
             }
             spr = hit.collider.GetComponent<SpriteRenderer>();
             
-            Debug.Log($"Sprite clicked: {tile.name} at {hit.transform.position}");
+            //Debug.Log($"Sprite clicked: {tile.name} at {hit.transform.position}");
         }
 
         else {
