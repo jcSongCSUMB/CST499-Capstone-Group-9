@@ -2002,6 +2002,7 @@ MonoBehaviour:
   tilemap: {fileID: 531802423}
   tile: {fileID: 0}
   isMovingUnit: 0
+  isAttacking: 0
   acMan: {fileID: 1358749441}
 --- !u!4 &537924652 stripped
 Transform:
@@ -2564,7 +2565,7 @@ PrefabInstance:
     - target: {fileID: 705274697491174852, guid: 627b000b4374df744973ab639aa942eb, type: 3}
       propertyPath: unit
       value: 
-      objectReference: {fileID: 1911810312}
+      objectReference: {fileID: 1138537705}
     - target: {fileID: 1111724998827579265, guid: 627b000b4374df744973ab639aa942eb, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2.6999998
@@ -3512,7 +3513,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 990625616}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1358749441}
+        m_TargetAssemblyTypeName: actionManager, Assembly-CSharp
+        m_MethodName: OnMoveButtonClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!4 &999455323 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1111724998827579265, guid: 627b000b4374df744973ab639aa942eb, type: 3}
@@ -3946,6 +3959,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 627b000b4374df744973ab639aa942eb, type: 3}
+--- !u!1 &1138537705 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3298952125583168210, guid: 45ac5a943ac8f2946b2ed20bd8e556e5, type: 3}
+  m_PrefabInstance: {fileID: 1280778576}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1169488651
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4431,6 +4449,7 @@ MonoBehaviour:
   actionPanel: {fileID: 1302435724}
   moveButton: {fileID: 990625618}
   attackButton: {fileID: 2084019703}
+  tmap: {fileID: 531802427}
 --- !u!4 &1358749442
 Transform:
   m_ObjectHideFlags: 0
@@ -5418,6 +5437,7 @@ MonoBehaviour:
   tilemap: {fileID: 1720099500}
   tile: {fileID: 0}
   isMovingUnit: 0
+  isAttacking: 0
   acMan: {fileID: 0}
 --- !u!4 &1764358586 stripped
 Transform:
@@ -5631,17 +5651,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1911810312 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: -1787917736801711124, guid: 45ac5a943ac8f2946b2ed20bd8e556e5, type: 3}
-  m_PrefabInstance: {fileID: 1280778576}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3bfa190f02813a343a6a69c41afd2ae2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &1912413917 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1111724998827579265, guid: 627b000b4374df744973ab639aa942eb, type: 3}
@@ -6060,7 +6069,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2084019704}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1358749441}
+        m_TargetAssemblyTypeName: actionManager, Assembly-CSharp
+        m_MethodName: OnAttackButtonClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &2084019704
 MonoBehaviour:
   m_ObjectHideFlags: 0

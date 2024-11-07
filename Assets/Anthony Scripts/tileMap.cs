@@ -6,16 +6,25 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using Color = UnityEngine.Color;
 
+// Notes
+// We want to get a raycast click onto the tile we're selecting
+// to select the tile, but after a tile is selected, temporarily 
+// disable the raycast selection (through if statement) to allow for
+// click on menu to then allow the movement to occur. Have two functions
+// that allow one to select the tile, then the other to move the unit 
+// selected.
+
 public class tileMap : MonoBehaviour {
     public Tilemap tilemap;
     public tileScript tile;
     private SpriteRenderer spr;
     private GameObject selectedUnit = null;
     public bool isMovingUnit = false;
+    public bool isAttacking = false;
     public actionManager acMan;
     // Start is called before the first frame update
     void Start() {
-        
+        acMan = FindObjectOfType<actionManager>();
     }
 
     // Update is called once per frame
@@ -32,19 +41,19 @@ public class tileMap : MonoBehaviour {
         }
     }
 
-    public int getUnitAP() {
+    public unitScript getUnitAP() {
         if (selectedUnit == null) {
             Debug.LogWarning("No unit selected.");
-            return 0;
+            return null;
         }
         
         unitScript us = selectedUnit.GetComponent<unitScript>();
         if (us != null) {
-            return us.unitAP;    
+            return us;    
         }
         else {
             Debug.LogError("Unit script not found.");
-            return 0;
+            return null;
         }
     }
 
@@ -61,6 +70,10 @@ public class tileMap : MonoBehaviour {
 
         return null;
     }
+
+    void CheckTileClick(Vector3 mousePos) {
+        
+    }
     
     void CheckSpriteClick(Vector3 mousePos) {
         RaycastHit2D? hitResult = GetFocusedOnTile();
@@ -74,16 +87,13 @@ public class tileMap : MonoBehaviour {
             // if clicked tile
             if (clickedTile != null) {
                 // first click for selection
-                if (selectedUnit == null && clickedTile.hasUnit) {
-                    if (clickedTile.hasUnit) {
-                        selectedUnit = clickedTile.unit;
-                        Debug.Log("Unit selected");
-                        actionManager actionManager = FindObjectOfType<actionManager>();
-                        actionManager?.OpenActionPanel(selectedUnit.GetComponent<unitScript>());
-                    }
+                if (clickedTile.hasUnit && selectedUnit == null) {
+                    selectedUnit = clickedTile.unit;
+                    Debug.Log("Unit selected");
+                    acMan.OpenActionPanel(selectedUnit.GetComponent<unitScript>());
                 }
                 // second click to move to another tile
-                else if (selectedUnit != null && isMovingUnit) {
+                else if (isMovingUnit && selectedUnit != null) {
                     // logic for unit already on tile
                     if (!clickedTile.hasUnit) {
                         MoveUnitToTile(selectedUnit, tile, clickedTile);
@@ -93,6 +103,20 @@ public class tileMap : MonoBehaviour {
                     else {
                         Debug.Log("Cannot move to a tile that already has a unit.");
                     }
+                }
+                
+                else if (isAttacking && selectedUnit != null) {
+                    if (clickedTile.hasUnit) {
+                        unitScript us = clickedTile.unit.GetComponent<unitScript>();
+                        us.unitHealth -= 10;
+                        us.actionUse();
+                        isAttacking = false;
+                        selectedUnit = null;
+                    }
+                }
+                
+                else {
+                    acMan.CloseActionPanel();
                     selectedUnit = null;
                     tile = null;
                 }

@@ -9,13 +9,11 @@ public class actionManager : MonoBehaviour {
     public Button attackButton;
     private unitScript selectedUnit;
 
-    private tileMap tmap;
+    public tileMap tmap;
 
     void Start() {
         actionPanel.SetActive(false);
         
-        moveButton.onClick.AddListener(OnMoveButtonClicked);
-        attackButton.onClick.AddListener(OnAttackButtonClicked);
     }
     
     public void OpenActionPanel(unitScript unit) {
@@ -24,21 +22,32 @@ public class actionManager : MonoBehaviour {
     }
     
     public void CloseActionPanel() {
+        //selectedUnit = null;
         actionPanel.SetActive(false);
-        selectedUnit = null;
     }
 
-    private void OnMoveButtonClicked() {
-        if (selectedUnit != null && tmap != null) {
+    public void OnMoveButtonClicked() {
+        if (selectedUnit != null && selectedUnit.unitAP > 0) {
+            Debug.Log($"Move being pressed! isMoving: {tmap.isMovingUnit}");
             tmap.isMovingUnit = true;
-            selectedUnit.actionUse();
+            //selectedUnit.actionUse();
+            CloseActionPanel();
+        }
+        else {
+            Debug.Log("Not enough AP!!!");
             CloseActionPanel();
         }
     }
 
-    private void OnAttackButtonClicked() {
-        if (selectedUnit != null) {
-            selectedUnit.actionUse();
+    public void OnAttackButtonClicked() {
+        if (selectedUnit != null && selectedUnit.unitAP > 0) {
+            tmap.isAttacking = true;
+            //selectedUnit.actionUse();
+            CloseActionPanel();
+        }
+
+        else {
+            Debug.Log("Not enough AP!!!");
             CloseActionPanel();
         }
     }

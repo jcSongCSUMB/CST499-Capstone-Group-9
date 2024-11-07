@@ -25,12 +25,15 @@ public class battleManager : MonoBehaviour {
     }
 
     void SetText() {
-        int unitAP = tmap.getUnitAP();
-        if (tmap.getUnitAP() > 0) {
-            unitCounter.text = $"Units: {activeUnits} - Selected AP: {tmap.getUnitAP()}";
-        }
-        else {
-            unitCounter.text = $"Units: {activeUnits} - Selected AP: NONE";
+        //
+        if (tmap.getUnitAP() != null) {
+            unitScript unit = tmap.getUnitAP();
+            if (unit.unitAP > 0) {
+                unitCounter.text = $"Units: {activeUnits} - AP: {unit.unitAP} H: {unit.unitHealth} S: {unit.unitSpeed}";
+            }
+            else {
+                unitCounter.text = $"Units: {activeUnits} - Selected AP: NONE";
+            }
         }
     }
 
