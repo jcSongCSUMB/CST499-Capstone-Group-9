@@ -3,13 +3,14 @@ using UnityEngine;
 public class CameraFollow : MonoBehaviour
 {
     public Transform player;
-    public float smoothSpeed = 0.125f;
-    public Vector3 offset;
+    public Vector3 offset = new Vector3(0, 0, -10f);
 
-    private void LateUpdate()
+    void LateUpdate()
     {
-        Vector3 desiredPosition = player.position + offset;
-        Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
-        transform.position = smoothedPosition;
+        if (player != null)
+        {
+            Vector3 targetPosition = player.position + offset;
+            transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * 5f); // Smooth movement
+        }
     }
 }
