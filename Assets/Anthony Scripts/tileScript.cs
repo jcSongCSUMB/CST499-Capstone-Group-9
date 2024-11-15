@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class tileScript : MonoBehaviour {
-    public GameObject unit;
-    public bool hasUnit {
-        get { return unit != null; }
-    }
+    public unitScript unit;
+    public bool hasUnit;
     
     // Start is called before the first frame update
     void Start() {
@@ -18,11 +16,13 @@ public class tileScript : MonoBehaviour {
         
     }
 
-    public void AssignUnit(GameObject newUnit) {
+    public void AssignUnit(unitScript newUnit) {
         unit = newUnit;
+        hasUnit = true;
     }
 
     public void ClearUnit() {
         unit = null;
+        hasUnit = false;
     }
 }

@@ -6,6 +6,7 @@ using UnityEngine;
 public class battleManager : MonoBehaviour {
     public int activeUnits = 4;
     private bool turnComplete = false;
+    public int morale = 100;
     public TextMeshProUGUI  unitCounter;
     public tileMap tmap;
     
@@ -39,6 +40,10 @@ public class battleManager : MonoBehaviour {
 
     public void decreaseUnits() {
         activeUnits--;
+    }
+
+    public void decreaseMorale(int amt) {
+        morale -= amt;
     }
 
     void endTurn() {

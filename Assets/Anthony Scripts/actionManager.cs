@@ -42,7 +42,7 @@ public class actionManager : MonoBehaviour {
     public void OnAttackButtonClicked() {
         if (selectedUnit != null && selectedUnit.unitAP > 0) {
             tmap.isAttacking = true;
-            //selectedUnit.actionUse();
+            //  selectedUnit.actionUse();
             CloseActionPanel();
         }
 
