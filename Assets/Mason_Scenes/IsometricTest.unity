@@ -285,7 +285,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.1
   far clip plane: 1000
   field of view: 60
   orthographic: 1
@@ -377,7 +377,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 595442881}
-  smoothSpeed: 0.125
   offset: {x: 0, y: 0, z: -10}
 --- !u!1001 &338319016
 PrefabInstance:

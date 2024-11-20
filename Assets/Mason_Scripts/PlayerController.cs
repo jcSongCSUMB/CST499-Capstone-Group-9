@@ -77,6 +77,18 @@ public class PlayerController : MonoBehaviour
         start = new Vector3(Mathf.Round(start.x), Mathf.Round(start.y), -0.1f);
         target = new Vector3(Mathf.Round(target.x), Mathf.Round(target.y), -0.1f);
 
+        // Check if the target is occupied (e.g., by an NPC or obstacle)
+        if (IsTileOccupied(target))
+        {
+            // Find the nearest valid adjacent tile if the target is occupied
+            target = FindNearestValidTile(target);
+            if (target == start) // If no valid tile is found, return an empty path
+            {
+                Debug.LogWarning("No valid adjacent tile found near the target.");
+                return path;
+            }
+        }
+
         // Initialize BFS
         frontier.Enqueue(start);
         visited.Add(start);
@@ -90,7 +102,7 @@ public class PlayerController : MonoBehaviour
         {
             Vector3 current = frontier.Dequeue();
 
-            // Check if we've reached the target
+            // Check if neighbor is visited and not occupied
             if (current == target)
             {
                 targetReached = true;
@@ -114,9 +126,8 @@ public class PlayerController : MonoBehaviour
 
         if (targetReached)
         {
-            // Reconstruct the path if target was reached
-            Vector3 step = target;
-
+            Vector3 step = target; // Reconstruct the path if the target was reached
+            
             // Reconstruct path from target to start
             while (step != start)
             {
@@ -131,7 +142,7 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
             }
-            path.Enqueue(start);  // Include start position
+            path.Enqueue(start); // Include start position
             path = new Queue<Vector3>(path.Reverse()); // Reverse path for correct order
         }
         else
@@ -141,13 +152,50 @@ public class PlayerController : MonoBehaviour
 
         return path;
     }
+    
+    Vector3 FindNearestValidTile(Vector3 target)
+    {
+        Vector3[] directions = { Vector3.up, Vector3.down, Vector3.left, Vector3.right };
+        Queue<Vector3> frontier = new Queue<Vector3>();
+        HashSet<Vector3> visited = new HashSet<Vector3>();
 
+        // Start search from the target's position
+        frontier.Enqueue(target);
+        visited.Add(target);
+
+        while (frontier.Count > 0)
+        {
+            Vector3 current = frontier.Dequeue();
+
+            foreach (Vector3 direction in directions)
+            {
+                Vector3 neighbor = current + direction;
+
+                // Check if the neighbor is a valid tile (not occupied and not visited)
+                if (!visited.Contains(neighbor) && !IsTileOccupied(neighbor))
+                {
+                    return neighbor; // Return the first valid tile found
+                }
+
+                // Add neighbor to the frontier for further exploration
+                if (!visited.Contains(neighbor))
+                {
+                    frontier.Enqueue(neighbor);
+                    visited.Add(neighbor);
+                }
+            }
+        }
+
+        return target; // If no valid tile is found, return the original target (fallback)
+    }
+    
     bool IsTileOccupied(Vector3 targetPosition)
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(targetPosition, 0.1f);  // Adjust radius as needed
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(targetPosition, 0.1f); // Adjust radius as needed
         foreach (Collider2D collider in colliders)
         {
-            if (collider.CompareTag("NPC") || collider.CompareTag("Obstacle"))  // Check if there's an obstacle or NPC
+            // Check if there's an obstacle or NPC
+            if (collider.CompareTag("NPC") || collider.CompareTag("Obstacle"))
             {
                 return true;
             }
