@@ -27,14 +27,17 @@ public class battleManager : MonoBehaviour {
 
     void SetText() {
         //
-        if (tmap.getUnitAP() != null) {
+        if (tmap.selectedUnit != null) {
             unitScript unit = tmap.getUnitAP();
-            if (unit.unitAP > 0) {
+            if (unit) {
                 unitCounter.text = $"Units: {activeUnits} - AP: {unit.unitAP} H: {unit.unitHealth} S: {unit.unitSpeed}";
             }
             else {
                 unitCounter.text = $"Units: {activeUnits} - Selected AP: NONE";
             }
+        }
+        else {
+            unitCounter.text = $"UNIT: {tmap.selectedUnit}";
         }
     }
 

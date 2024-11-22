@@ -7,7 +7,6 @@ public class actionManager : MonoBehaviour {
     public GameObject actionPanel;
     public Button moveButton;
     public Button attackButton;
-    private unitScript selectedUnit;
 
     public tileMap tmap;
 
@@ -16,8 +15,8 @@ public class actionManager : MonoBehaviour {
         
     }
     
-    public void OpenActionPanel(unitScript unit) {
-        selectedUnit = unit;
+    public void OpenActionPanel() {
+        //selectedUnit = unit;
         actionPanel.SetActive(true);
     }
     
@@ -27,7 +26,7 @@ public class actionManager : MonoBehaviour {
     }
 
     public void OnMoveButtonClicked() {
-        if (selectedUnit != null && selectedUnit.unitAP > 0) {
+        if (tmap.selectedUnit != null/* && selectedUnit.unitAP > 0*/) {
             Debug.Log($"Move being pressed! isMoving: {tmap.isMovingUnit}");
             tmap.isMovingUnit = true;
             //selectedUnit.actionUse();
@@ -40,7 +39,7 @@ public class actionManager : MonoBehaviour {
     }
 
     public void OnAttackButtonClicked() {
-        if (selectedUnit != null && selectedUnit.unitAP > 0) {
+        if (tmap.selectedUnit != null && tmap.selectedUnit.unitAP > 0) {
             tmap.isAttacking = true;
             //  selectedUnit.actionUse();
             CloseActionPanel();

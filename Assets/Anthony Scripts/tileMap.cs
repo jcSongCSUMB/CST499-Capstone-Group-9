@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using Color = UnityEngine.Color;
@@ -14,11 +15,15 @@ using Color = UnityEngine.Color;
 // that allow one to select the tile, then the other to move the unit 
 // selected.
 
+// TODO:
+// fix issue with start of moving characters or attacking. (fixed after first move?)
+// incorporate area detection 
+
 public class tileMap : MonoBehaviour {
     public Tilemap tilemap;
     public tileScript tile, lastTile;
-    private SpriteRenderer spr = null;
-    private unitScript selectedUnit, lastUnit;
+    public SpriteRenderer spr = null;
+    public unitScript selectedUnit, lastUnit;
     public bool isMovingUnit = false;
     public bool isAttacking = false;
     public actionManager acMan;
@@ -34,27 +39,34 @@ public class tileMap : MonoBehaviour {
         // for selection, we want to check for valid tile for selection.
         // this gives us a selected unit if a battle unit is present on the tile
         
+        /*
         if (Input.GetMouseButtonDown(0)) {
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             CheckSpriteClick(mousePos);
         }
+        */
         
 
-        /*
+        
         if (Input.GetMouseButtonDown(0)) {
             if (tile != null) {
                 lastTile = tile;
+                tile = GetTile().collider.GetComponent<tileScript>();
                 BattleLogic();
             }
-            tile = GetTile().collider.GetComponent<tileScript>();
-            spr = GetTile().collider.GetComponent<SpriteRenderer>();
+            else {
+                tile = GetTile().collider.GetComponent<tileScript>();
+                spr = GetTile().collider.GetComponent<SpriteRenderer>();
+            }
+            
+            
 
             if (selectedUnit != null) {
                 lastUnit = selectedUnit;
             }
             CheckSprite(tile);
         }
-        */
+        
 
         if (tile != null) {
             Color newColor = spr.color;
@@ -99,7 +111,7 @@ public class tileMap : MonoBehaviour {
         return null;
     }
     
-    /*
+    
     public RaycastHit2D GetTile() {
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 mPos2D = new Vector2(mousePos.x, mousePos.y);
@@ -114,25 +126,28 @@ public class tileMap : MonoBehaviour {
             MoveUnitToTile(selectedUnit, lastTile, tile);
             isMovingUnit = false;
         } else if (isAttacking) {
-            AttackUnitOnTile(lastUnit, selectedUnit);
+            AttackUnitOnTile(selectedUnit, lastUnit);
             isAttacking = false;
         } else {
-
+            //Debug.Log("BL else reached.");
         }
     }
 
 
     void CheckSprite(tileScript tile) {
-        // selected unit
+        // selected tile
         if (tile != null) {
 
             // checking for unit on tile
             if (tile.hasUnit) {
                 Debug.Log("Unit selected!");
-                acMan.OpenActionPanel(tile.unit);
+                selectedUnit = tile.unit;
+                acMan.OpenActionPanel();
 
             } else {
                 Debug.Log("Unit de-selected.");
+                lastUnit = selectedUnit;
+                selectedUnit = null;
                 acMan.CloseActionPanel();
             }
 
@@ -142,8 +157,8 @@ public class tileMap : MonoBehaviour {
             SprColorReset();
         }
     }
-    */
     
+    /*
     void CheckSpriteClick(Vector3 mousePos) {
         RaycastHit2D? hitResult = GetFocusedOnTile();
 
@@ -207,6 +222,7 @@ public class tileMap : MonoBehaviour {
             selectedUnit = null;
         }
     }
+    */
 
     void AttackUnitOnTile(unitScript unit, unitScript target) {
         if (unit.unitAP > 0) {
@@ -217,17 +233,18 @@ public class tileMap : MonoBehaviour {
         }
 
         else {
-            Debug.Log("Unit has no AP.");
+            //Debug.Log("Unit has no AP.");
         }
     }
 
     void MoveUnitToTile(unitScript unit, tileScript prevTile, tileScript targetTile) {
         //unitScript us = unit.GetComponent<unitScript>();
-
+        Debug.Log($"Unit: {unit}, prevTile: {prevTile.transform.position}, target: {targetTile.transform.position}");
         if (unit.unitAP > 0) {
             unit.transform.position = new Vector3(targetTile.transform.position.x, targetTile.transform.position.y + 0.5f, -1);
             prevTile.ClearUnit();
             targetTile.AssignUnit(unit);
+            moraleCheck(targetTile); // morale check for target tile to move to.
             unit.actionUse();
         }
 
@@ -239,6 +256,9 @@ public class tileMap : MonoBehaviour {
     }
     
     public List<tileScript> GetSurroundingTiles(tileScript centerTile) {
+        Grid grid = tilemap.GetComponentInParent<Grid>();
+        Vector3Int gridPos = grid.WorldToCell(centerTile.transform.position);
+        
         List<tileScript> surroundingTiles = new List<tileScript>();
         Vector3Int[] neighborOffsets = new Vector3Int[] {
             new Vector3Int(-1, 0, 0), // Left
@@ -252,11 +272,13 @@ public class tileMap : MonoBehaviour {
         };
 
         foreach (var tile in neighborOffsets) {
-            Vector3Int neighborPosition = tilemap.WorldToCell(centerTile.transform.position) + tile;
-            TileBase neighborTileBase = tilemap.GetTile(neighborPosition);
+            Vector3Int neighborPosition = gridPos + tile;
         
-            if (neighborTileBase != null) {
-                tileScript neighborTile = tilemap.GetInstantiatedObject(neighborPosition).GetComponent<tileScript>();
+            if (neighborPosition != null) {
+                TileBase cellPos = tilemap.GetTile(neighborPosition);
+                tileScript neighborTile = cellPos.GetComponent<tileScript>();
+                //Vector3 neighborTile = grid.CellToWorld(neighborPosition);
+                
                 if (neighborTile != null) {
                     surroundingTiles.Add(neighborTile);
                 }
@@ -281,9 +303,13 @@ public class tileMap : MonoBehaviour {
     
     void moraleCheck(tileScript selectedTile) {
         int surroundingUnits = getSurroundingUnits(selectedTile);
-        if (surroundingUnits > 8) {
+        if (surroundingUnits > 0) {
             bm.decreaseMorale(10);
-            Debug.Log("Morale decreased by 10 due to surrounding units.");
+            Debug.Log($"Morale decreased by 10 due to surrounding units.\nMorale: {bm.morale}");
+        }
+
+        else {
+            Debug.Log($"Moral: {bm.morale}");
         }
     }
 }
