@@ -28,10 +28,13 @@ public class tileMap : MonoBehaviour {
     public bool isAttacking = false;
     public actionManager acMan;
     public battleManager bm;
+
+    public Tile groundTile;
     
     // Start is called before the first frame update
     void Start() {
         acMan = FindObjectOfType<actionManager>();
+        CreateGrid(tilemap);
     }
 
     // Update is called once per frame
@@ -39,24 +42,16 @@ public class tileMap : MonoBehaviour {
         // for selection, we want to check for valid tile for selection.
         // this gives us a selected unit if a battle unit is present on the tile
         
-        /*
-        if (Input.GetMouseButtonDown(0)) {
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            CheckSpriteClick(mousePos);
-        }
-        */
-        
-
-        
         if (Input.GetMouseButtonDown(0)) {
             if (tile != null) {
                 lastTile = tile;
-                tile = GetTile().collider.GetComponent<tileScript>();
+                tile = GetTileHit().collider.GetComponent<tileScript>();
+                //spr = GetTileHit().collider.GetComponent<SpriteRenderer>();
                 BattleLogic();
             }
             else {
-                tile = GetTile().collider.GetComponent<tileScript>();
-                spr = GetTile().collider.GetComponent<SpriteRenderer>();
+                tile = GetTileHit().collider.GetComponent<tileScript>();
+                spr = GetTileHit().collider.GetComponent<SpriteRenderer>();
             }
             
             
@@ -96,27 +91,17 @@ public class tileMap : MonoBehaviour {
             return null;
         }
     }
-
-    public RaycastHit2D? GetFocusedOnTile() {
-        Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 mousePos2d = new Vector2(mousePos.x, mousePos.y);
-
-        RaycastHit2D hit = Physics2D.Raycast(mousePos2d, Vector2.zero);
-        
-        
-        if (hit != null) {
-            return hit;
-        }
-
-        return null;
-    }
     
-    
-    public RaycastHit2D GetTile() {
+    public RaycastHit2D GetTileHit() {
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 mPos2D = new Vector2(mousePos.x, mousePos.y);
         RaycastHit2D hit = Physics2D.Raycast(mPos2D, Vector2.zero);
-
+        
+        if (hit == null) {
+            acMan.CloseActionPanel();
+            Debug.LogWarning("Clicked non-tile.");
+        }
+        
         return hit;
     }
 
@@ -126,11 +111,16 @@ public class tileMap : MonoBehaviour {
             MoveUnitToTile(selectedUnit, lastTile, tile);
             isMovingUnit = false;
         } else if (isAttacking) {
-            AttackUnitOnTile(selectedUnit, lastUnit);
+            AttackUnitOnTile(selectedUnit, tile);
             isAttacking = false;
         } else {
             //Debug.Log("BL else reached.");
         }
+    }
+
+    
+    void UnitStatCalculations(unitScript unit, tileScript target) {
+        
     }
 
 
@@ -157,76 +147,12 @@ public class tileMap : MonoBehaviour {
             SprColorReset();
         }
     }
-    
-    /*
-    void CheckSpriteClick(Vector3 mousePos) {
-        RaycastHit2D? hitResult = GetFocusedOnTile();
 
-        // check for tile hit
-        if (hitResult.HasValue) {
-            RaycastHit2D hit = hitResult.Value;
-            tile = hit.collider.GetComponent<tileScript>();
-            tileScript clickedTile = hit.collider.GetComponent<tileScript>();
-
-            // if clicked tile
-            if (clickedTile != null) {
-                // first click for selection
-                if (clickedTile.hasUnit && selectedUnit == null) {
-                    selectedUnit = clickedTile.unit;
-                    Debug.Log("Unit selected");
-                    acMan.OpenActionPanel(selectedUnit.GetComponent<unitScript>());
-                }
-                // second click to move to another tile
-                else if (isMovingUnit && selectedUnit != null) {
-                    // logic for unit already on tile
-                    if (!clickedTile.hasUnit) {
-                        MoveUnitToTile(selectedUnit, lastTile, clickedTile);
-                        isMovingUnit = false;
-                        selectedUnit = null;
-                    }
-                    else {
-                        Debug.Log("Cannot move to a tile that already has a unit.");
-                    }
-                }
-                
-                else if (isAttacking && selectedUnit != null) {
-                    if (clickedTile.hasUnit) {
-                        unitScript us = clickedTile.unit.GetComponent<unitScript>();
-                        us.unitHealth -= 10;
-                        us.actionUse();
-                        isAttacking = false;
-                        selectedUnit = null;
-                    }
-                }
-                
-                else {
-                    acMan.CloseActionPanel();
-                    selectedUnit = null;
-                    tile = null;
-                }
-            }
-            
-            if (spr != null) {
-                //spr.sortingLayerName = "Units";
-                Color orig = spr.color;
-                orig.a = 1;
-                spr.color = orig;
-            }
-            spr = hit.collider.GetComponent<SpriteRenderer>();
-            
-            //Debug.Log($"Sprite clicked: {tile.name} at {hit.transform.position}");
-        }
-
-        else {
-            Debug.Log("Nothing here?");
-            selectedUnit = null;
-        }
-    }
-    */
-
-    void AttackUnitOnTile(unitScript unit, unitScript target) {
+    // to avoid null object, use tileScript as target and check for unit or apply to unit
+    // on the tile. 
+    void AttackUnitOnTile(unitScript unit, tileScript target) {
         if (unit.unitAP > 0) {
-            target.unitHealth -= unit.unitDMG;
+            target.unit.unitHealth -= unit.unitDMG;
             unit.actionUse();
             isAttacking = false;
             selectedUnit = null;
@@ -239,12 +165,12 @@ public class tileMap : MonoBehaviour {
 
     void MoveUnitToTile(unitScript unit, tileScript prevTile, tileScript targetTile) {
         //unitScript us = unit.GetComponent<unitScript>();
-        Debug.Log($"Unit: {unit}, prevTile: {prevTile.transform.position}, target: {targetTile.transform.position}");
+        //Debug.Log($"Unit: {unit}, prevTile: {prevTile.transform.position}, target: {targetTile.transform.position}");
         if (unit.unitAP > 0) {
             unit.transform.position = new Vector3(targetTile.transform.position.x, targetTile.transform.position.y + 0.5f, -1);
             prevTile.ClearUnit();
             targetTile.AssignUnit(unit);
-            moraleCheck(targetTile); // morale check for target tile to move to.
+            moraleCheck(targetTile.gameObject); // morale check for target tile to move to.
             unit.actionUse();
         }
 
@@ -252,35 +178,71 @@ public class tileMap : MonoBehaviour {
             Debug.Log("Unit has no AP.");
         }
         
-        Debug.Log("Unit moved to new tile.");
+        //Debug.Log("Unit moved to new tile.");
+    }
+
+    public void CreateGrid(Tilemap tmap) {
+        for (int i = 10; i < 15; i++) {
+            for (int j = 2; j > -3; j--) {
+                Vector3Int pos = new Vector3Int(i, j, 0);
+                tmap.SetTile(pos, groundTile);
+            }
+        }
     }
     
-    public List<tileScript> GetSurroundingTiles(tileScript centerTile) {
+    public List<tileScript> GetSurroundingTiles(GameObject centerTile) {
+        // Ensure the Tilemap and Grid are valid
+        if (centerTile == null || tilemap == null) {
+            Debug.LogWarning("Center tile or tilemap is null.");
+            return new List<tileScript>();
+        }
+
         Grid grid = tilemap.GetComponentInParent<Grid>();
         Vector3Int gridPos = grid.WorldToCell(centerTile.transform.position);
-        
+        //Debug.Log("WORLD TO CELL: " + gridPos);
+        //Debug.Log($"OBJ: {tilemap.GetInstantiatedObject(gridPos).name}");
+
         List<tileScript> surroundingTiles = new List<tileScript>();
         Vector3Int[] neighborOffsets = new Vector3Int[] {
-            new Vector3Int(-1, 0, 0), // Left
-            new Vector3Int(1, 0, 0),  // Right
-            new Vector3Int(0, -1, 0), // Down
-            new Vector3Int(0, 1, 0),  // Up
-            new Vector3Int(-1, -1, 0), // Bottom-left
-            new Vector3Int(-1, 1, 0),  // Top-left
-            new Vector3Int(1, -1, 0),  // Bottom-right
-            new Vector3Int(1, 1, 0)   // Top-right
+            new Vector3Int(0, 1, 0), // Left
+            new Vector3Int(0, -1, 0),  // Right
+            new Vector3Int(-1, 0, 0), // Down
+            new Vector3Int(1, 0, 0),  // Up
+            new Vector3Int(-1, 1, 0), // Bottom-left
+            new Vector3Int(1, 1, 0),  // Top-left
+            new Vector3Int(-1, -1, 0),  // Bottom-right
+            new Vector3Int(1, -1, 0)   // Top-right
         };
-
-        foreach (var tile in neighborOffsets) {
-            Vector3Int neighborPosition = gridPos + tile;
         
-            if (neighborPosition != null) {
-                TileBase cellPos = tilemap.GetTile(neighborPosition);
-                tileScript neighborTile = cellPos.GetComponent<tileScript>();
-                //Vector3 neighborTile = grid.CellToWorld(neighborPosition);
+        
+        //Vector3 worldPos = tilemap.CellToWorld(neighborPosition);
+        // fix stupid error here, NULL GAME OBJECTS?? GetInstantiatedObject() returns null
+        // find another way to check gameobject at certain position
+        // gameobject var below returns null, not sure why.
+        //tilemap.SetTile(neighborPosition, );
+        foreach (var offset in neighborOffsets) {
+            Vector3Int sum = gridPos + offset;
+            Vector3 neighborPosition = tilemap.CellToWorld(gridPos + offset);
+            Vector2 nPosition = new Vector2(neighborPosition.x, neighborPosition.y);
+            Vector2 cam = Camera.main.ScreenToWorldPoint(nPosition);
+            Vector2 direction = (nPosition - cam).normalized;
+            
+            RaycastHit2D h = Physics2D.Raycast(nPosition, direction);
+            Debug.Log($"h: {h.IsUnityNull()}");
+
+            if (h.collider != null) {
+                GameObject tileObject = h.collider.gameObject;
                 
-                if (neighborTile != null) {
-                    surroundingTiles.Add(neighborTile);
+                Debug.Log($"EXISTS!?!?!?!?!{tileObject}");
+                Debug.Log($"\n[1] Being reached? Offset: {offset} gridPos: {gridPos} Sum: {sum} WPOS: {neighborPosition}");
+        
+                if (tileObject != null) {
+                    tileScript neighborTile = tileObject.GetComponent<tileScript>();
+                    Debug.Log($"\n[2] Being reached? neighborTile: {neighborTile}");
+                    if (neighborTile != null) {
+                        surroundingTiles.Add(neighborTile);
+                        Debug.Log("\n[3] Is add being reached?!??!?!?!?!");
+                    }
                 }
             }
         }
@@ -288,11 +250,13 @@ public class tileMap : MonoBehaviour {
         return surroundingTiles;
     }
     
-    public int getSurroundingUnits(tileScript centerTile) {
+    public int getSurroundingUnits(GameObject centerTile) {
         List<tileScript> surroundingTiles = GetSurroundingTiles(centerTile);
+        //Debug.Log("Reaches function");
         int unitCount = 0;
 
         foreach (var tile in surroundingTiles) {
+            Debug.Log($"Tile Position: {tile.transform.position} | HasUnit: {tile.hasUnit} | Tiles: {surroundingTiles.Count}");
             if (tile.hasUnit) {
                 unitCount++;
             }
@@ -301,7 +265,7 @@ public class tileMap : MonoBehaviour {
         return unitCount;
     }
     
-    void moraleCheck(tileScript selectedTile) {
+    void moraleCheck(GameObject selectedTile) {
         int surroundingUnits = getSurroundingUnits(selectedTile);
         if (surroundingUnits > 0) {
             bm.decreaseMorale(10);
@@ -309,7 +273,7 @@ public class tileMap : MonoBehaviour {
         }
 
         else {
-            Debug.Log($"Moral: {bm.morale}");
+            Debug.Log($"Moral: {bm.morale} | Units: {surroundingUnits}");
         }
     }
 }

@@ -27,7 +27,7 @@ public class actionManager : MonoBehaviour {
 
     public void OnMoveButtonClicked() {
         if (tmap.selectedUnit != null/* && selectedUnit.unitAP > 0*/) {
-            Debug.Log($"Move being pressed! isMoving: {tmap.isMovingUnit}");
+            //Debug.Log($"Move being pressed! isMoving: {tmap.isMovingUnit}");
             tmap.isMovingUnit = true;
             //selectedUnit.actionUse();
             CloseActionPanel();
