@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using Color = UnityEngine.Color;
@@ -30,11 +31,12 @@ public class tileMap : MonoBehaviour {
     public battleManager bm;
 
     public Tile groundTile;
+    private List<tileScript> validMoveTiles = new List<tileScript>();
     
     // Start is called before the first frame update
     void Start() {
         acMan = FindObjectOfType<actionManager>();
-        CreateGrid(tilemap);
+        //CreateGrid(tilemap);
     }
 
     // Update is called once per frame
@@ -123,6 +125,15 @@ public class tileMap : MonoBehaviour {
         
     }
 
+    void ResetValidMoveTiles() {
+        foreach (var tile in validMoveTiles) {
+            SpriteRenderer sprRen = tile.GetComponent<SpriteRenderer>();
+            if (sprRen != null) {
+                sprRen.color = Color.white;
+            }
+        }
+        validMoveTiles.Clear();
+    }
 
     void CheckSprite(tileScript tile) {
         // selected tile
@@ -134,11 +145,21 @@ public class tileMap : MonoBehaviour {
                 selectedUnit = tile.unit;
                 acMan.OpenActionPanel();
 
+                validMoveTiles = GetSurroundingTiles(tile.gameObject);
+
+                foreach (var valid in validMoveTiles) {
+                    SpriteRenderer sprRen = valid.GetComponent<SpriteRenderer>();
+                    if (sprRen != null) {
+                        sprRen.color = Color.yellow;
+                    }
+                }
+
             } else {
                 Debug.Log("Unit de-selected.");
                 lastUnit = selectedUnit;
                 selectedUnit = null;
                 acMan.CloseActionPanel();
+                ResetValidMoveTiles();
             }
 
         // nothing selected
@@ -151,11 +172,17 @@ public class tileMap : MonoBehaviour {
     // to avoid null object, use tileScript as target and check for unit or apply to unit
     // on the tile. 
     void AttackUnitOnTile(unitScript unit, tileScript target) {
+        if (!validMoveTiles.Contains(target)) {
+            Debug.LogWarning("Invalid attack!");
+            return;
+        }
         if (unit.unitAP > 0) {
             target.unit.unitHealth -= unit.unitDMG;
             unit.actionUse();
             isAttacking = false;
             selectedUnit = null;
+            
+            ResetValidMoveTiles();
         }
 
         else {
@@ -166,12 +193,19 @@ public class tileMap : MonoBehaviour {
     void MoveUnitToTile(unitScript unit, tileScript prevTile, tileScript targetTile) {
         //unitScript us = unit.GetComponent<unitScript>();
         //Debug.Log($"Unit: {unit}, prevTile: {prevTile.transform.position}, target: {targetTile.transform.position}");
+        if (!validMoveTiles.Contains(targetTile)) {
+            Debug.LogWarning("Invalid move!");
+            return;
+        }
+        
         if (unit.unitAP > 0) {
-            unit.transform.position = new Vector3(targetTile.transform.position.x, targetTile.transform.position.y + 0.5f, -1);
+            unit.transform.position = new Vector3(targetTile.transform.position.x, targetTile.transform.position.y + 0.5f, 0);
             prevTile.ClearUnit();
             targetTile.AssignUnit(unit);
             moraleCheck(targetTile.gameObject); // morale check for target tile to move to.
             unit.actionUse();
+            
+            ResetValidMoveTiles();
         }
 
         else {
@@ -222,16 +256,19 @@ public class tileMap : MonoBehaviour {
         //tilemap.SetTile(neighborPosition, );
         foreach (var offset in neighborOffsets) {
             Vector3Int sum = gridPos + offset;
-            Vector3 neighborPosition = tilemap.CellToWorld(gridPos + offset);
+            Vector3 neighborPosition = tilemap.CellToLocal(sum);
             Vector2 nPosition = new Vector2(neighborPosition.x, neighborPosition.y);
             Vector2 cam = Camera.main.ScreenToWorldPoint(nPosition);
             Vector2 direction = (nPosition - cam).normalized;
+            
             
             RaycastHit2D h = Physics2D.Raycast(nPosition, direction);
             Debug.Log($"h: {h.IsUnityNull()}");
 
             if (h.collider != null) {
                 GameObject tileObject = h.collider.gameObject;
+                //SpriteRenderer s = tileObject.GetComponent<SpriteRenderer>();
+                //s.color = Color.red;
                 
                 Debug.Log($"EXISTS!?!?!?!?!{tileObject}");
                 Debug.Log($"\n[1] Being reached? Offset: {offset} gridPos: {gridPos} Sum: {sum} WPOS: {neighborPosition}");
@@ -267,7 +304,7 @@ public class tileMap : MonoBehaviour {
     
     void moraleCheck(GameObject selectedTile) {
         int surroundingUnits = getSurroundingUnits(selectedTile);
-        if (surroundingUnits > 0) {
+        if (surroundingUnits > 1) {
             bm.decreaseMorale(10);
             Debug.Log($"Morale decreased by 10 due to surrounding units.\nMorale: {bm.morale}");
         }
