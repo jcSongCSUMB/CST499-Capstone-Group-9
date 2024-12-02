@@ -8,7 +8,8 @@ public class unitScript : MonoBehaviour {
     public float unitSpeed = 3f;
     public int unitDMG = 10;
     public bool isActive = true;
-
+    public bool friendly = true; 
+    
     private battleManager bm;
     //GameObject target;
     //^^^ to be used later for battle

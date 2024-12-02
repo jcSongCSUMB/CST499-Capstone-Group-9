@@ -101,7 +101,9 @@ MonoBehaviour:
   unitHealth: 50
   unitAP: 2
   unitSpeed: 3
+  unitDMG: 20
   isActive: 1
+  friendly: 1
 --- !u!61 &4669700765105081028
 BoxCollider2D:
   m_ObjectHideFlags: 0

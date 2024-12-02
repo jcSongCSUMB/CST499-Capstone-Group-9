@@ -27,9 +27,11 @@ public class tileMap : MonoBehaviour {
     public unitScript selectedUnit, lastUnit;
     public bool isMovingUnit = false;
     public bool isAttacking = false;
+    
     public actionManager acMan;
     public battleManager bm;
-
+    public unitList unitOptions;
+    
     public Tile groundTile;
     private List<tileScript> validMoveTiles = new List<tileScript>();
     
@@ -69,6 +71,32 @@ public class tileMap : MonoBehaviour {
             Color newColor = spr.color;
             newColor.a = 0.5f + Mathf.PingPong(Time.time * 0.5f, 0.5f);
             spr.color = newColor;
+        }
+    }
+    
+    public void SpawnEnemies() {
+        Vector3[] EnemySpawns = new Vector3[] {
+            new Vector3(3.15f, -0.75f, 0),
+            new Vector3(4.05f, -0.25f, 0),
+            new Vector3(4.95f, 0.25f, 0)
+        };
+
+        foreach (var pos in EnemySpawns) {
+            Vector2 nPosition = new Vector2(pos.x, pos.y);
+            Vector2 cam = Camera.main.ScreenToWorldPoint(nPosition);
+            Vector2 direction = (nPosition - cam).normalized;
+            RaycastHit2D h = Physics2D.Raycast(nPosition, direction);
+
+            if (h.collider != null) {
+                tileScript tile = h.collider.GetComponent<tileScript>();
+
+                if (tile != null && !tile.hasUnit) {
+                    GameObject unit = Instantiate(unitOptions.warrior);
+                    unit.transform.position = pos + new Vector3(0, 0.3f, 0);
+                    tile.hasUnit = true;
+                    tile.unit = unit.GetComponent<unitScript>();
+                }
+            }
         }
     }
 
@@ -199,7 +227,7 @@ public class tileMap : MonoBehaviour {
         }
         
         if (unit.unitAP > 0) {
-            unit.transform.position = new Vector3(targetTile.transform.position.x, targetTile.transform.position.y + 0.5f, 0);
+            unit.transform.position = new Vector3(targetTile.transform.position.x, targetTile.transform.position.y + 0.3f, 0);
             prevTile.ClearUnit();
             targetTile.AssignUnit(unit);
             moraleCheck(targetTile.gameObject); // morale check for target tile to move to.
@@ -220,6 +248,60 @@ public class tileMap : MonoBehaviour {
             for (int j = 2; j > -3; j--) {
                 Vector3Int pos = new Vector3Int(i, j, 0);
                 tmap.SetTile(pos, groundTile);
+            }
+        }
+    }
+
+    unitScript FindNearestPlayer(unitScript enemy) {
+        unitScript nearestPlayer = null;
+        float shortestDistance = 100f;
+
+        foreach (var unit in FindObjectsOfType<unitScript>()) {
+            if (unit.friendly) {
+                float distance = Vector3.Distance(enemy.transform.position, unit.transform.position);
+
+                if (distance < shortestDistance) {
+                    shortestDistance = distance;
+                    nearestPlayer = unit;
+                }
+            }
+        }
+
+        return nearestPlayer;
+    }
+
+    tileScript enemyMoveUnit(unitScript enemyUnit, unitScript targetUnit) {
+        List<tileScript> surroundingTiles = GetSurroundingTiles(enemyUnit.gameObject);
+        tileScript bestMove = null;
+        float shortestDistance = 100f;
+
+        foreach (var tile in surroundingTiles) {
+            if (!tile.hasUnit) {
+                float distance = Vector3.Distance(tile.transform.position, targetUnit.transform.position);
+                if (distance < shortestDistance) {
+                    shortestDistance = distance;
+                    bestMove = tile;
+                }
+            }
+        }
+
+        return bestMove;
+    }
+    
+    public void enemyTurn() {
+        foreach (var enemy in bm.enemyUnits) {
+            if (enemy.unitAP > 0 && enemy.isActive) {
+                unitScript target = FindNearestPlayer(enemy);
+
+                if (target != null) {
+                    tileScript targetTile = enemyMoveUnit(enemy, target);
+                    if (targetTile != null && targetTile.hasUnit && targetTile.unit.friendly) {
+                        AttackUnitOnTile(enemy, targetTile);
+                    }
+                    else {
+                        MoveUnitToTile(enemy, enemy.GetComponentInParent<tileScript>(), targetTile);
+                    }
+                }
             }
         }
     }
@@ -248,12 +330,6 @@ public class tileMap : MonoBehaviour {
             new Vector3Int(1, -1, 0)   // Top-right
         };
         
-        
-        //Vector3 worldPos = tilemap.CellToWorld(neighborPosition);
-        // fix stupid error here, NULL GAME OBJECTS?? GetInstantiatedObject() returns null
-        // find another way to check gameobject at certain position
-        // gameobject var below returns null, not sure why.
-        //tilemap.SetTile(neighborPosition, );
         foreach (var offset in neighborOffsets) {
             Vector3Int sum = gridPos + offset;
             Vector3 neighborPosition = tilemap.CellToLocal(sum);
@@ -267,10 +343,6 @@ public class tileMap : MonoBehaviour {
 
             if (h.collider != null) {
                 GameObject tileObject = h.collider.gameObject;
-                //SpriteRenderer s = tileObject.GetComponent<SpriteRenderer>();
-                //s.color = Color.red;
-                
-                Debug.Log($"EXISTS!?!?!?!?!{tileObject}");
                 Debug.Log($"\n[1] Being reached? Offset: {offset} gridPos: {gridPos} Sum: {sum} WPOS: {neighborPosition}");
         
                 if (tileObject != null) {

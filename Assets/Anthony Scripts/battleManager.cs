@@ -9,11 +9,19 @@ public class battleManager : MonoBehaviour {
     public int morale = 100;
     public TextMeshProUGUI  unitCounter;
     public tileMap tmap;
+
+    public List<unitScript> enemyUnits = new List<unitScript>();
     
     
     // Start is called before the first frame update
     void Start() {
         unitCounter.text = $"Units: {activeUnits} - {tmap.getUnitAP()}";
+
+        foreach (var tile in FindObjectsOfType<tileScript>()) {
+            if (tile.hasUnit && !tile.unit.friendly) {
+                enemyUnits.Add(tile.unit);
+            }
+        }
     }
 
     // Update is called once per frame

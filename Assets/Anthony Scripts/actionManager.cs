@@ -50,4 +50,13 @@ public class actionManager : MonoBehaviour {
             CloseActionPanel();
         }
     }
+
+    public void OnEndTurnButtonClicked() {
+        //if (tmap.bm.activeUnits > 0) {
+        //    Debug.Log("Still active units on field!");
+        //}
+        //else {
+            tmap.enemyTurn();
+        //}
+    }
 }
