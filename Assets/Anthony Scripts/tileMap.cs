@@ -38,6 +38,7 @@ public class tileMap : MonoBehaviour {
     // Start is called before the first frame update
     void Start() {
         acMan = FindObjectOfType<actionManager>();
+        SpawnEnemies();
         //CreateGrid(tilemap);
     }
 
@@ -45,7 +46,7 @@ public class tileMap : MonoBehaviour {
     void Update() {
         // for selection, we want to check for valid tile for selection.
         // this gives us a selected unit if a battle unit is present on the tile
-        
+        //moveCam();
         if (Input.GetMouseButtonDown(0)) {
             if (tile != null) {
                 lastTile = tile;
@@ -92,12 +93,20 @@ public class tileMap : MonoBehaviour {
 
                 if (tile != null && !tile.hasUnit) {
                     GameObject unit = Instantiate(unitOptions.warrior);
-                    unit.transform.position = pos + new Vector3(0, 0.3f, 0);
+                    unitScript unitInfo = unit.GetComponent<unitScript>();
+                    unitInfo.friendly = false;
+                    unit.transform.position = pos + new Vector3(0, 0, 0);
                     tile.hasUnit = true;
                     tile.unit = unit.GetComponent<unitScript>();
                 }
             }
         }
+    }
+
+    void moveCam() {
+        Vector3 mPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mPos.z = Camera.main.transform.position.z;
+        Camera.main.transform.position = Vector3.Lerp(Camera.main.transform.position, mPos, 0.001f);
     }
 
     void SprColorReset() {
