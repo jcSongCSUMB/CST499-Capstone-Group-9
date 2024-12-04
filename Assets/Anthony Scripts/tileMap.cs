@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using Color = UnityEngine.Color;
+using Random = System.Random;
 
 // Notes
 // We want to get a raycast click onto the tile we're selecting
@@ -308,25 +309,10 @@ public class tileMap : MonoBehaviour {
         Grid grid = tilemap.GetComponentInParent<Grid>();
         Vector3Int enemyGridPos = grid.WorldToCell(enemyUnit.transform.position);
 
-        foreach (var tileTuple in tileTuples) {
-            tileScript tile = tileTuple.Item1;
-            Vector3Int tileGridPos = tileTuple.Item2;
+        Random ran = new Random();
+        int randomIdx = ran.Next(surroundingTiles.Count);
 
-            // Check if the tile is adjacent to the enemy's current position and unoccupied
-            if (Mathf.Abs(tileGridPos.x - enemyGridPos.x) <= 1 &&
-                Mathf.Abs(tileGridPos.y - enemyGridPos.y) <= 1 &&
-                !tile.hasUnit) {
-            
-                // Calculate the distance to the target unit
-                float distance = Vector3.Distance(tile.transform.position, targetUnit.transform.position);
-
-                // Update the best move if this tile is closer to the target
-                if (distance < shortestDistance) {
-                    shortestDistance = distance;
-                    bestMove = tile;
-                }
-            }
-        }
+        bestMove = surroundingTiles[randomIdx];
         
         /*
         foreach (var tile in surroundingTiles) {
@@ -399,31 +385,6 @@ public class tileMap : MonoBehaviour {
                     surroundingTiles.Add(neighborTile);
                 }
             }
-            
-            /*
-            Vector3Int sum = gridPos + offset;
-            Vector3 neighborPosition = tilemap.CellToLocal(sum);
-            Vector2 nPosition = new Vector2(neighborPosition.x, neighborPosition.y);
-            Vector2 cam = Camera.main.ScreenToWorldPoint(nPosition);
-            Vector2 direction = (nPosition - cam).normalized;
-            
-            
-            RaycastHit2D h = Physics2D.Raycast(nPosition, direction);
-            Debug.Log($"h: {h.IsUnityNull()}");
-
-            if (h.collider != null) {
-                GameObject tileObject = h.collider.gameObject;
-                Debug.Log($"\n[1] Being reached? Offset: {offset} gridPos: {gridPos} Sum: {sum} WPOS: {neighborPosition}");
-        
-                if (tileObject != null) {
-                    tileScript neighborTile = tileObject.GetComponent<tileScript>();
-                    Debug.Log($"\n[2] Being reached? neighborTile: {neighborTile}");
-                    if (neighborTile != null) {
-                        surroundingTiles.Add(neighborTile);
-                        Debug.Log("\n[3] Is add being reached?!??!?!?!?!");
-                    }
-                }
-            }*/
         }
 
         return surroundingTiles;
