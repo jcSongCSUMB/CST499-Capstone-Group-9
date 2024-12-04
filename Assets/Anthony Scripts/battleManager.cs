@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 
 public class battleManager : MonoBehaviour {
-    public int activeUnits = 4;
+    public int activeUnits = 0;
     private bool turnComplete = false;
     public int morale = 100;
     public TextMeshProUGUI  unitCounter;
@@ -38,14 +38,14 @@ public class battleManager : MonoBehaviour {
         if (tmap.selectedUnit != null) {
             unitScript unit = tmap.getUnitAP();
             if (unit) {
-                unitCounter.text = $"Units: {activeUnits} - AP: {unit.unitAP} H: {unit.unitHealth} S: {unit.unitSpeed}";
+                unitCounter.text = $"AP: {unit.unitAP} HEALTH: {unit.unitHealth} DMG: {unit.unitDMG}";
             }
             else {
                 unitCounter.text = $"Units: {activeUnits} - Selected AP: NONE";
             }
         }
         else {
-            unitCounter.text = $"UNIT: {tmap.selectedUnit}";
+            unitCounter.text = $"ACTIVE UNITS [{activeUnits}]";
         }
     }
 

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3771647510473337444}
   - component: {fileID: 4185476030709395331}
   m_Layer: 2
-  m_Name: unitTest_Archer
+  m_Name: archer
   m_TagString: Character
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

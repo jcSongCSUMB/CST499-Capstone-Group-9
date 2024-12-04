@@ -5,6 +5,7 @@ using UnityEngine;
 public class tileScript : MonoBehaviour {
     public unitScript unit;
     public bool hasUnit;
+    public string spawnType = "None";
     
     // Start is called before the first frame update
     void Start() {

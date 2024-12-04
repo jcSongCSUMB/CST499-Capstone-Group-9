@@ -57,6 +57,7 @@ public class actionManager : MonoBehaviour {
         //}
         //else {
             tmap.enemyTurn();
+            Debug.Log("EndTurnButton Clicked!");
         //}
     }
 }
