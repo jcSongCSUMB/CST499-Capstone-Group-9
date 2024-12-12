@@ -5,12 +5,14 @@ using UnityEngine;
 
 public class battleManager : MonoBehaviour {
     public int activeUnits = 0;
+    private int friendlyDefault = 0;
     private bool turnComplete = false;
     public int morale = 100;
     public TextMeshProUGUI  unitCounter;
     public tileMap tmap;
 
     public List<unitScript> enemyUnits = new List<unitScript>();
+    public List<unitScript> friendlyUnits = new List<unitScript>();
     
     
     // Start is called before the first frame update
@@ -20,6 +22,11 @@ public class battleManager : MonoBehaviour {
         foreach (var tile in FindObjectsOfType<tileScript>()) {
             if (tile.hasUnit && !tile.unit.friendly) {
                 enemyUnits.Add(tile.unit);
+            }
+
+            if (tile.hasUnit && tile.unit.friendly) {
+                friendlyUnits.Add(tile.unit);
+                friendlyDefault+=1;
             }
         }
     }
@@ -57,10 +64,14 @@ public class battleManager : MonoBehaviour {
         morale -= amt;
     }
 
-    void endTurn() {
-        // to be used on button in UI
-        // will stop turn regardless of active units
-        // possibily add UI prompt of un-used units
-        turnComplete = true;
+    public void ResetEnemies() {
+        activeUnits = friendlyDefault;
+        foreach(var enemy in enemyUnits) {
+            enemy.ResetAP();
+        }
+
+        foreach (var player in friendlyUnits) {
+            player.ResetAP();
+        }
     }
 }

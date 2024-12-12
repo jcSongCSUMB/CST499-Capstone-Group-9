@@ -25,8 +25,8 @@ public class unitScript : MonoBehaviour {
         
     }
 
-    void calcMove() {
-        
+    public void ResetAP() {
+        unitAP = 2;
     }
 
     public void actionUse() {
@@ -35,7 +35,8 @@ public class unitScript : MonoBehaviour {
             unitAP--;
         }
 
-        if (unitAP <= 0) {
+        // only for friendly units will the activeUnits be decremented
+        if (unitAP <= 0 && friendly) {
             if (bm != null) {
                 bm.decreaseUnits();
                 Debug.Log("No more AP available.");

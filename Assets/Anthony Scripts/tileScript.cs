@@ -17,6 +17,20 @@ public class tileScript : MonoBehaviour {
         
     }
 
+    public void UnitHealthCheck() {
+        if (unit == null) {
+            Debug.LogWarning("Unit is null.");
+            return;
+        }
+        
+        if (unit.unitHealth <= 0) {
+            GameObject GO = unit.gameObject;
+            hasUnit = false;
+            unit = null;
+            Destroy(GO);
+        }
+    }
+
     public void AssignUnit(unitScript newUnit) {
         unit = newUnit;
         hasUnit = true;
