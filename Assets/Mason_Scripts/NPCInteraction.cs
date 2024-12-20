@@ -6,19 +6,21 @@ using System.Linq;
 
 public class NPCInteraction : MonoBehaviour
 {
-    public TextMeshProUGUI dialogueText;   // Text for dialogue box
-    public TextMeshProUGUI choiceText;     // Text for choice box
-    public GameObject dialogueBox;         // Dialogue box UI object
-    public GameObject choiceBox;           // Choice box UI object
+    public TextMeshProUGUI dialogueText;
+    public TextMeshProUGUI choiceText;
+    public GameObject dialogueBox;
+    public GameObject choiceBox;
 
-    private string[] dialogueLines;        // Loaded dialogue lines
-    private int dialogueIndex = 0;         // Tracks current dialogue line
-    private bool isInteracting = false;    // Tracks if interaction is active
-    private bool isTyping = false;         // Tracks if text is typing
-    private bool isChoosing = false;       // Tracks if player is making a choice
+    private string[] dialogueLines;
+    private int dialogueIndex = 0;
+    private bool isInteracting = false;
+    private bool isTyping = false;
+    private bool isChoosing = false;
 
-    private string currentLine = "";       // Current dialogue line being typed
-    private string characterName = "";     // Stores the speaker's name
+    private string currentLine = "";
+    private string characterName = "";
+    private int currentChoiceIndex = 0;
+    private string[] currentChoices;
 
     void Start()
     {
@@ -41,12 +43,17 @@ public class NPCInteraction : MonoBehaviour
             {
                 StartDialogue();
             }
-            else if (isInteracting && !isChoosing)
+            else if (isInteracting)
             {
-                if (isTyping)
+                if (isChoosing)
                 {
+                    ConfirmChoice();
+                }
+                else if (isTyping)
+                {
+                    // Skip typing and display the full line
                     StopAllCoroutines();
-                    dialogueText.text = currentLine;
+                    dialogueText.text = characterName + currentLine; // Preserve the name and full dialogue
                     isTyping = false;
                 }
                 else
@@ -56,10 +63,9 @@ public class NPCInteraction : MonoBehaviour
             }
         }
 
-        // Handle choice navigation
         if (isChoosing)
         {
-            HandleChoiceInput();
+            HandleChoiceNavigation();
         }
     }
 
@@ -79,7 +85,6 @@ public class NPCInteraction : MonoBehaviour
         dialogueIndex = 0;
         isInteracting = true;
 
-        // Load dialogue lines from file
         string npcName = gameObject.name;
         string filePath = $"Assets/Quest Scripts/{npcName.Replace("NPC", "")}.txt";
         dialogueLines = File.ReadAllLines(filePath);
@@ -103,7 +108,7 @@ public class NPCInteraction : MonoBehaviour
             }
             else
             {
-                // Display dialogue
+                // Display normal dialogue
                 ParseLine(line);
                 dialogueIndex++;
             }
@@ -122,8 +127,8 @@ public class NPCInteraction : MonoBehaviour
         int delimiterIndex = line.IndexOf(": ");
         if (delimiterIndex > 0)
         {
-            characterName = line.Substring(0, delimiterIndex + 2);
-            currentLine = line.Substring(delimiterIndex + 2);
+            characterName = line.Substring(0, delimiterIndex + 1) + " "; // Keep the name + ": "
+            currentLine = line.Substring(delimiterIndex + 2); // Keep the dialogue text
         }
         else
         {
@@ -131,21 +136,28 @@ public class NPCInteraction : MonoBehaviour
             currentLine = line;
         }
 
-        // Immediately display the character name
+        // Set initial text to the name only
         dialogueText.text = characterName;
 
-        // Gradually display the rest of the text
+        // Gradually display the dialogue text
         StartCoroutine(TypeText(currentLine));
     }
 
     IEnumerator TypeText(string text)
     {
         isTyping = true;
+
+        // Start with the character's name
+        dialogueText.text = characterName;
+
+        // Gradually append letters from the dialogue text
         foreach (char letter in text.ToCharArray())
         {
             dialogueText.text += letter;
             yield return new WaitForSeconds(0.05f);
         }
+
+        // End typing
         isTyping = false;
     }
 
@@ -154,38 +166,58 @@ public class NPCInteraction : MonoBehaviour
         choiceBox.SetActive(true);
         choiceText.enabled = true;
 
-        // Extract and display choices
-        string[] choices = dialogueLines
-            .Skip(dialogueIndex)
-            .TakeWhile(line => line.StartsWith("Player (Choice):"))
-            .Select(line => line.Replace("Player (Choice): ", ""))
+        // Extract choices by skipping and removing the "Player (Choice): " prefix
+        currentChoices = dialogueLines
+            .Skip(dialogueIndex) // Start from current index
+            .TakeWhile(line => line.StartsWith("Player (Choice):")) // Only take choice lines
+            .Select(line => line.Replace("Player (Choice): ", "").Trim()) // Remove prefix
             .ToArray();
 
-        choiceText.text = string.Join("\n", choices);
+        // Update dialogue index to skip choice lines after selection
+        dialogueIndex += currentChoices.Length;
+
+        UpdateChoiceDisplay();
     }
 
-    void HandleChoiceInput()
+    void UpdateChoiceDisplay()
     {
-        // Add navigation logic for choices (e.g., highlight with arrow keys)
+        string choiceDisplay = "";
+        for (int i = 0; i < currentChoices.Length; i++)
+        {
+            if (i == currentChoiceIndex)
+            {
+                choiceDisplay += $"<u>{currentChoices[i]}</u>\n";
+            }
+            else
+            {
+                choiceDisplay += $"{currentChoices[i]}\n";
+            }
+        }
+        choiceText.text = choiceDisplay.TrimEnd();
+    }
+
+    void HandleChoiceNavigation()
+    {
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            // Highlight previous choice
+            currentChoiceIndex = Mathf.Max(0, currentChoiceIndex - 1);
+            UpdateChoiceDisplay();
         }
         else if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            // Highlight next choice
+            currentChoiceIndex = Mathf.Min(currentChoices.Length - 1, currentChoiceIndex + 1);
+            UpdateChoiceDisplay();
         }
-        else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space))
-        {
-            // Confirm choice
-            isChoosing = false;
-            choiceBox.SetActive(false);
-            choiceText.enabled = false;
+    }
 
-            // Resume dialogue after choice
-            dialogueIndex++;  // Skip over the Player's choice line
-            DisplayNextLine();
-        }
+    void ConfirmChoice()
+    {
+        isChoosing = false;
+        choiceBox.SetActive(false);
+        choiceText.enabled = false;
+
+        dialogueIndex += 2; // Skip over the choice lines
+        DisplayNextLine();
     }
 
     void EndDialogue()
