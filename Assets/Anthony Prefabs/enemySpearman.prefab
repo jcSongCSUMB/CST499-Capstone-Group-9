@@ -48,9 +48,25 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4669700765105081028, guid: 0ec676f6caf249c43a5c4e168e9fca87, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.x
+      value: 0.4375
+      objectReference: {fileID: 0}
+    - target: {fileID: 4669700765105081028, guid: 0ec676f6caf249c43a5c4e168e9fca87, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.y
+      value: 0.8333333
+      objectReference: {fileID: 0}
+    - target: {fileID: 5823575333015982653, guid: 0ec676f6caf249c43a5c4e168e9fca87, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 1114495359, guid: 061fe274fcce92b44b62da370cbe1e85, type: 3}
+    - target: {fileID: 8727217234888560547, guid: 0ec676f6caf249c43a5c4e168e9fca87, type: 3}
+      propertyPath: unitAP
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 9140941526143778091, guid: 0ec676f6caf249c43a5c4e168e9fca87, type: 3}
       propertyPath: m_Name
-      value: spearman
+      value: enemySpearman
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

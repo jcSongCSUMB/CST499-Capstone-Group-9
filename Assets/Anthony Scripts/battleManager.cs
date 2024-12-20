@@ -8,7 +8,8 @@ public class battleManager : MonoBehaviour {
     private int friendlyDefault = 0;
     private bool turnComplete = false;
     public int morale = 100;
-    public TextMeshProUGUI  unitCounter;
+    public TextMeshProUGUI unitCounter;
+    public TextMeshProUGUI healthText, dmgText, apText;
     public tileMap tmap;
 
     public List<unitScript> enemyUnits = new List<unitScript>();
@@ -45,14 +46,20 @@ public class battleManager : MonoBehaviour {
         if (tmap.selectedUnit != null) {
             unitScript unit = tmap.getUnitAP();
             if (unit) {
-                unitCounter.text = $"AP: {unit.unitAP} HEALTH: {unit.unitHealth} DMG: {unit.unitDMG}";
+                unitCounter.text = $"{activeUnits}";
+                healthText.text = $"{unit.unitHealth}";
+                dmgText.text = $"{unit.unitDMG}";
+                apText.text = $"{unit.unitAP}";
             }
             else {
-                unitCounter.text = $"Units: {activeUnits} - Selected AP: NONE";
+                unitCounter.text = $"{activeUnits}";
+                healthText.text = $"";
+                dmgText.text = $"";
+                apText.text = $"";
             }
         }
         else {
-            unitCounter.text = $"ACTIVE UNITS [{activeUnits}]";
+            unitCounter.text = $"{activeUnits}";
         }
     }
 

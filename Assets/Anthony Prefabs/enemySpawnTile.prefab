@@ -75,7 +75,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 3
-  m_Sprite: {fileID: 21300000, guid: 43fa9ab15009c65488f1cd9a878f53f2, type: 3}
+  m_Sprite: {fileID: -1936271583, guid: 736ec59604864994191980bbc49e5bea, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -100,6 +100,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unit: {fileID: 0}
   hasUnit: 0
+  playerSpawn: 0
   spawnType: Enemy
 --- !u!60 &3040475156205063919
 PolygonCollider2D:

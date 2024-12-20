@@ -22,6 +22,7 @@ using Random = System.Random;
 // incorporate area detection 
 
 public class tileMap : MonoBehaviour {
+    [Header("Tilemap Variables")]
     public Tilemap tilemap;
     public tileScript tile, lastTile;
     public SpriteRenderer spr = null;
@@ -29,13 +30,19 @@ public class tileMap : MonoBehaviour {
     public bool isMovingUnit = false;
     public bool isAttacking = false;
     
-    public actionManager acMan;
-    public battleManager bm;
-    public unitList unitOptions;
     
+    [Header("Tile Variables")]
     public Tile groundTile;
     public List<tileScript> validMoveTiles = new List<tileScript>();
     public List<Tuple<tileScript, Vector3Int>> tileTuples = new List<Tuple<tileScript, Vector3Int>>();
+
+    
+    [Header("Managers")]
+    public actionManager acMan;
+    public battleManager bm;
+    public unitList unitOptions;
+    public soundManager soundMan;
+
     
     // Start is called before the first frame update
     void Start() {
@@ -102,21 +109,23 @@ public class tileMap : MonoBehaviour {
     public void SpawnEnemies() {
         int activeUnits = 0;
         foreach (var tile in tileTuples) {
-            if (tile.Item1.spawnType == "Enemy") {
-                GameObject unit = Instantiate(unitOptions.eWarrior);
+            if (tile.Item1.playerSpawn == false && tile.Item1.spawnType != "None") {
+                GameObject unit = Instantiate(unitOptions.playerType(tile.Item1.spawnType));
                 unitScript unitInfo = unit.GetComponent<unitScript>();
+                unitInfo.unitName = tile.Item1.spawnType;
                 unitInfo.friendly = false;
-                unit.transform.position = tile.Item1.transform.position + new Vector3(0, 0.3f, 0);
+                unit.transform.position = tile.Item1.transform.position + new Vector3(0, 0.15f, 0);
                 tile.Item1.hasUnit = true;
                 tile.Item1.unit = unit.GetComponent<unitScript>();
             }
 
-            if (tile.Item1.spawnType == "Player") {
+            if (tile.Item1.playerSpawn == true && tile.Item1.spawnType != "None") {
                 activeUnits++;
-                GameObject unit = Instantiate(unitOptions.warrior);
+                GameObject unit = Instantiate(unitOptions.playerType(tile.Item1.spawnType));
                 unitScript unitInfo = unit.GetComponent<unitScript>();
+                unitInfo.unitName = tile.Item1.spawnType;
                 unitInfo.friendly = true;
-                unit.transform.position = tile.Item1.transform.position + new Vector3(0, 0.3f, 0);
+                unit.transform.position = tile.Item1.transform.position + new Vector3(0, 0.15f, 0);
                 tile.Item1.hasUnit = true;
                 tile.Item1.unit = unit.GetComponent<unitScript>();
             }
@@ -233,11 +242,12 @@ public class tileMap : MonoBehaviour {
         }
         if (unit.unitAP > 0) {
             target.unit.unitHealth -= unit.unitDMG;
+            //target.unit.SetHealth();
             unit.actionUse();
             isAttacking = false;
             selectedUnit = null;
             
-            
+            soundMan.playSFX(unit.unitName);
             ResetValidMoveTiles();
         }
 
@@ -255,13 +265,14 @@ public class tileMap : MonoBehaviour {
         }
         
         if (unit.unitAP > 0) {
-            unit.transform.position = new Vector3(targetTile.transform.position.x, targetTile.transform.position.y + 0.3f, 0);
+            unit.transform.position = new Vector3(targetTile.transform.position.x, targetTile.transform.position.y + 0.15f, 0);
             prevTile.ClearUnit();
             targetTile.AssignUnit(unit);
             moraleCheck(targetTile.gameObject); // morale check for target tile to move to.
             unit.actionUse();
             
             ResetValidMoveTiles();
+            soundMan.playSFX("move");
             Debug.Log($"Go through if?");
         }
 
@@ -286,7 +297,7 @@ public class tileMap : MonoBehaviour {
         float shortestDistance = 100f;
 
         foreach (var unit in FindObjectsOfType<unitScript>()) {
-            if (unit.friendly && unit.isActive) {
+            if (unit.friendly && unit.isActive && unit != enemy) {
                 float distance = Vector3.Distance(enemy.transform.position, unit.transform.position);
 
                 if (distance < shortestDistance) {
@@ -298,6 +309,16 @@ public class tileMap : MonoBehaviour {
 
         return nearestPlayer;
     }
+
+    
+    public void RemoveUnit(unitScript unit) {
+        if (unit == null) return;
+
+        bm.enemyUnits.Remove(unit);
+        bm.activeUnits--;
+    }
+    
+
 
     tileScript enemyMoveUnit(unitScript enemyUnit, unitScript targetUnit) {
         Vector3Int eTilePos = tilemap.WorldToCell(enemyUnit.transform.position);
@@ -328,32 +349,38 @@ public class tileMap : MonoBehaviour {
     }
     
     public void enemyTurn() {
-        foreach (var enemy in bm.enemyUnits) {
-            //Debug.Log($"enemies: {bm.enemyUnits.Count}");
+        foreach (var enemy in bm.enemyUnits.ToList()) { // Use a copy of the list to avoid modification issues
+            if (enemy == null) continue; // Skip if the enemy unit has been destroyed
+
             while (enemy.unitAP > 0 && enemy.isActive) {
                 Vector3Int eTilePos = tilemap.WorldToCell(enemy.transform.position);
-                tileScript eTile = tileTuples.Find(tuple => tuple.Item2 == eTilePos).Item1;
-                //Debug.Log($"Is active!");
+                tileScript eTile = tileTuples.Find(tuple => tuple.Item2 == eTilePos)?.Item1;
+
+                if (eTile == null) break; // Skip if the tile is null
+
                 unitScript target = FindNearestPlayer(enemy);
-                //Debug.Log($"Nearest player: {target.transform.position}");
                 if (target != null) {
                     tileScript targetTile = enemyMoveUnit(enemy, target);
-                    if (targetTile.hasUnit) {
-                        Debug.Log($"Enemy is attacking!");
-                        AttackUnitOnTile(enemy, targetTile);
+
+                    if (targetTile != null) {
+                        if (targetTile.hasUnit) {
+                            Debug.Log($"Enemy is attacking!");
+                            AttackUnitOnTile(enemy, targetTile);
+                            soundMan.playSFX("warrior");
+                        } else {
+                            Debug.Log($"Enemy is moving. From: {eTile.transform.position} To: {targetTile.transform.position}");
+                            MoveUnitToTile(enemy, eTile, targetTile);
+                            soundMan.playSFX("move");
+                        }
                     }
-                    else {
-                        Debug.Log($"Enemy is moving. From: {eTile.transform.position} To: {targetTile.transform.position}");
-                        MoveUnitToTile(enemy, eTile, targetTile);
-                    }
-                }
-                else {
+                } else {
                     Debug.LogWarning("No Target found for enemy.");
                     break;
                 }
             }
         }
     }
+
     
     public List<tileScript> GetSurroundingTiles(GameObject centerTile) {
         // Ensure the Tilemap and Grid are valid
