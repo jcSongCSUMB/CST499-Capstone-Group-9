@@ -63,6 +63,7 @@ public class tileMap : MonoBehaviour {
                 tile = GetTileHit().collider.GetComponent<tileScript>();
                 //spr = GetTileHit().collider.GetComponent<SpriteRenderer>();
                 BattleLogic();
+                
             }
             else {
                 tile = GetTileHit().collider.GetComponent<tileScript>();
@@ -204,6 +205,7 @@ public class tileMap : MonoBehaviour {
 
             // checking for unit on tile
             if (tile.hasUnit && tile.unit.friendly == true) {
+                soundMan.playSFX("click");
                 Debug.Log("Unit selected!");
                 selectedUnit = tile.unit;
                 acMan.OpenActionPanel();
