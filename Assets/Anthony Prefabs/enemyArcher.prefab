@@ -8,9 +8,25 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3771647510473337444, guid: c4079f63b0ee1c34586121643abb46dc, type: 3}
+      propertyPath: unitAP
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4185476030709395331, guid: c4079f63b0ee1c34586121643abb46dc, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.x
+      value: 0.41666666
+      objectReference: {fileID: 0}
+    - target: {fileID: 4185476030709395331, guid: c4079f63b0ee1c34586121643abb46dc, type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.y
+      value: 0.7708333
+      objectReference: {fileID: 0}
+    - target: {fileID: 4548457585246116206, guid: c4079f63b0ee1c34586121643abb46dc, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 1502812412, guid: edbd8d68ed6ca8d4da34bbd5eeaabcbb, type: 3}
     - target: {fileID: 8018226042936238684, guid: c4079f63b0ee1c34586121643abb46dc, type: 3}
       propertyPath: m_Name
-      value: archer
+      value: enemyArcher
       objectReference: {fileID: 0}
     - target: {fileID: 8687192753692803785, guid: c4079f63b0ee1c34586121643abb46dc, type: 3}
       propertyPath: m_LocalPosition.x
