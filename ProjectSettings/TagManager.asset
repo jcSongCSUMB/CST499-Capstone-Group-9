@@ -4,8 +4,7 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Character
-  - Tile
+  - NPC
   layers:
   - Default
   - TransparentFX
@@ -13,8 +12,6 @@ TagManager:
   - 
   - Water
   - UI
-  - TileMap
-  - Units
   - 
   - 
   - 
@@ -29,7 +26,9 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - Layer 1
+  - Layer 2
+  - Layer 3
   - 
   - 
   - 
@@ -43,9 +42,12 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Level_1_AboveGround
-    uniqueID: 1160686385
+  - name: Layer 1
+    uniqueID: 2425651459
     locked: 0
-  - name: Units
-    uniqueID: 1009082783
+  - name: Layer 2
+    uniqueID: 4250941897
+    locked: 0
+  - name: Layer 3
+    uniqueID: 4189426099
     locked: 0
