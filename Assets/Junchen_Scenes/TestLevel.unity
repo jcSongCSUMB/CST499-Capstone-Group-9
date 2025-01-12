@@ -220,6 +220,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4303207acc01c64aa187f604012c377, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cursor: {fileID: 41558578}
+  speed: 2
+  characterPrefab: {fileID: 1814423137545393516, guid: 466da8ab3a092234e92333cafda03b18,
+    type: 3}
 --- !u!1 &126606374
 GameObject:
   m_ObjectHideFlags: 0
